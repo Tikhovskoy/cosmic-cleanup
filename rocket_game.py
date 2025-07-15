@@ -2,7 +2,7 @@ import asyncio
 import curses
 import random
 
-from curses_tools import draw_frame, get_frame_size, read_controls
+from curses_helpers import draw_frame, get_frame_size, read_controls
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
