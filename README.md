@@ -27,7 +27,14 @@
 
 1. Установите Python 3.8 или выше.
 2. Убедитесь, что используете терминал с поддержкой библиотеки `curses`.
-3. Склонируйте репозиторий и выполните:
+3. Клонируйте репозиторий:
+
+```bash
+git clone https://github.com/your-username/cosmic-cleanup.git
+cd cosmic-cleanup
+```
+
+4. Запустите приложение:
 
 ```bash
 python3 rocket_game.py
