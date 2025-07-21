@@ -13,11 +13,11 @@ async def sleep_ticks(ticks=1):
         await asyncio.sleep(TIC_TIMEOUT)
 
 
-async def blink(canvas, row, col, symbol="*"):
+async def blink(canvas, row, col, symbol="*", offset_ticks=1):
     while True:
         canvas.addstr(row, col, symbol, curses.A_DIM)
         canvas.refresh()
-        await sleep_ticks(random.randint(1, 20))
+        await sleep_ticks(offset_ticks)
         canvas.addstr(row, col, symbol)
         canvas.refresh()
         await sleep_ticks(3)
@@ -89,9 +89,11 @@ async def draw(canvas):
             random.randint(1, h - 2),
             random.randint(1, w - 2),
             random.choice(STAR_SYMBOLS),
+            offset_ticks=random.randint(1, 20),
         )
         for _ in range(80)
     ]
+
     start_r, start_c = h // 2, w // 2
     tasks.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
 
