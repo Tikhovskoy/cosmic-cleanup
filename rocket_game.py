@@ -45,29 +45,19 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
     row, col = start_row, start_col
     current_flame = flame1
 
-    draw_frame(canvas, row, col, static)
-    draw_frame(canvas, row + flame_offset, col, current_flame)
-    canvas.refresh()
-    await sleep_ticks(2)
-
     height, width = get_frame_size(f1)
-    while True:
-        next_flame = flame2 if current_flame is flame1 else flame1
-        dr, dc, _ = read_controls(canvas)
-        moving = dr or dc
 
-        if moving:
-            draw_frame(canvas, row, col, static, negative=True)
-            draw_frame(canvas, row + flame_offset, col, current_flame, negative=True)
-            row = max(0, min(row + dr, max_rows - height))
-            col = max(0, min(col + dc, max_cols - width))
-            draw_frame(canvas, row, col, static)
-            draw_frame(canvas, row + flame_offset, col, next_flame)
-            current_flame = next_flame
-        else:
-            draw_frame(canvas, row + flame_offset, col, current_flame, negative=True)
-            draw_frame(canvas, row + flame_offset, col, next_flame)
-            current_flame = next_flame
+    while True:
+        draw_frame(canvas, row, col, static, negative=True)
+        draw_frame(canvas, row + flame_offset, col, current_flame, negative=True)
+
+        dr, dc, _ = read_controls(canvas)
+        row = max(0, min(row + dr, max_rows - height))
+        col = max(0, min(col + dc, max_cols - width))
+
+        draw_frame(canvas, row, col, static)
+        current_flame = flame2 if current_flame is flame1 else flame1
+        draw_frame(canvas, row + flame_offset, col, current_flame)
 
         canvas.refresh()
         await sleep_ticks(2)
