@@ -1,3 +1,4 @@
+import asyncio
 import curses
 import random
 import time
@@ -8,25 +9,28 @@ TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
 
 
-def sleep_ticks(ticks=1):
-    for _ in range(ticks):
-        yield
-
-
-def blink(canvas, row, col, symbol="*", offset_ticks=1):
+async def blink(canvas, row, col, symbol="*", offset_ticks=1):
     while True:
         canvas.addstr(row, col, symbol, curses.A_DIM)
         canvas.refresh()
-        yield from sleep_ticks(offset_ticks)
+        await asyncio.sleep(0)
+        for _ in range(offset_ticks):
+            await asyncio.sleep(0)
         canvas.addstr(row, col, symbol)
         canvas.refresh()
-        yield from sleep_ticks(3)
+        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
         canvas.addstr(row, col, symbol, curses.A_BOLD)
         canvas.refresh()
-        yield from sleep_ticks(5)
+        await asyncio.sleep(0)
+        for _ in range(5):
+            await asyncio.sleep(0)
         canvas.addstr(row, col, symbol)
         canvas.refresh()
-        yield from sleep_ticks(3)
+        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
 
 def split_frames(f1, f2):
@@ -39,7 +43,7 @@ def split_frames(f1, f2):
     return static, flame1, flame2, offset
 
 
-def animate_spaceship(canvas, start_row, start_col, f1, f2):
+async def animate_spaceship(canvas, start_row, start_col, f1, f2):
     max_rows, max_cols = canvas.getmaxyx()
     static, flame1, flame2, flame_offset = split_frames(f1, f2)
     row, col = start_row, start_col
@@ -59,18 +63,8 @@ def animate_spaceship(canvas, start_row, start_col, f1, f2):
         draw_frame(canvas, row + flame_offset, col, current_flame)
 
         canvas.refresh()
-        yield from sleep_ticks(2)
-
-
-def run_event_loop(coroutines, canvas):
-    while True:
-        for coro in coroutines.copy():
-            try:
-                next(coro)
-            except StopIteration:
-                coroutines.remove(coro)
-        canvas.refresh()
-        time.sleep(TIC_TIMEOUT)
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
 
 
 def draw(canvas):
@@ -97,7 +91,19 @@ def draw(canvas):
     start_r, start_c = h // 2, w // 2
     coroutines.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
 
-    run_event_loop(coroutines, canvas)
+    try:
+        while True:
+            for coroutine in coroutines.copy():
+                try:
+                    coroutine.send(None)
+                except StopIteration:
+                    coroutines.remove(coroutine)
+            canvas.refresh()
+            time.sleep(TIC_TIMEOUT)
+            if len(coroutines) == 0:
+                break
+    except KeyboardInterrupt:
+        pass
 
 
 def main():
