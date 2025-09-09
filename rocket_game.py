@@ -12,23 +12,15 @@ STAR_SYMBOLS = "+*.:"
 async def blink(canvas, row, col, symbol="*", offset_ticks=1):
     while True:
         canvas.addstr(row, col, symbol, curses.A_DIM)
-        canvas.refresh()
-        await asyncio.sleep(0)
         for _ in range(offset_ticks):
             await asyncio.sleep(0)
         canvas.addstr(row, col, symbol)
-        canvas.refresh()
-        await asyncio.sleep(0)
         for _ in range(3):
             await asyncio.sleep(0)
         canvas.addstr(row, col, symbol, curses.A_BOLD)
-        canvas.refresh()
-        await asyncio.sleep(0)
         for _ in range(5):
             await asyncio.sleep(0)
         canvas.addstr(row, col, symbol)
-        canvas.refresh()
-        await asyncio.sleep(0)
         for _ in range(3):
             await asyncio.sleep(0)
 
@@ -62,9 +54,8 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
         current_flame = flame2 if current_flame is flame1 else flame1
         draw_frame(canvas, row + flame_offset, col, current_flame)
 
-        canvas.refresh()
-        await asyncio.sleep(0)
-        await asyncio.sleep(0)
+        for _ in range(2):
+            await asyncio.sleep(0)
 
 
 def draw(canvas):
