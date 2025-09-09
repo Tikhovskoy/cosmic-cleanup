@@ -2,6 +2,7 @@ import asyncio
 import curses
 import random
 import time
+import itertools
 
 from curses_helpers import draw_frame, get_frame_size, read_controls
 
@@ -39,23 +40,23 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
     max_rows, max_cols = canvas.getmaxyx()
     static, flame1, flame2, flame_offset = split_frames(f1, f2)
     row, col = start_row, start_col
-    current_flame = flame1
     height, width = get_frame_size(f1)
 
-    while True:
+    flame_cycle = itertools.cycle([flame1, flame1, flame2, flame2])
+
+    for current_flame in flame_cycle:
         draw_frame(canvas, row, col, static, negative=True)
-        draw_frame(canvas, row + flame_offset, col, current_flame, negative=True)
+        draw_frame(canvas, row + flame_offset, col, flame1, negative=True)
+        draw_frame(canvas, row + flame_offset, col, flame2, negative=True)
 
         dr, dc, _ = read_controls(canvas)
         row = max(0, min(row + dr, max_rows - height))
         col = max(0, min(col + dc, max_cols - width))
 
         draw_frame(canvas, row, col, static)
-        current_flame = flame2 if current_flame is flame1 else flame1
         draw_frame(canvas, row + flame_offset, col, current_flame)
 
-        for _ in range(2):
-            await asyncio.sleep(0)
+        await asyncio.sleep(0)
 
 
 def draw(canvas):
