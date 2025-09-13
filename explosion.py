@@ -1,5 +1,6 @@
 import asyncio
 import curses
+
 from curses_helpers import draw_frame, get_frame_size
 
 EXPLOSION_FRAMES = [

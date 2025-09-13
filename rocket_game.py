@@ -1,14 +1,14 @@
 import asyncio
 import curses
+import itertools
 import random
 import time
-import itertools
 
 from curses_helpers import draw_frame, get_frame_size, read_controls
-from physics import update_speed
-from obstacles import Obstacle, show_obstacles
 from explosion import explode
 from game_scenario import PHRASES, get_garbage_delay_tics
+from obstacles import Obstacle
+from physics import update_speed
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
