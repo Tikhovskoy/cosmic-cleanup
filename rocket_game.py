@@ -17,6 +17,7 @@ coroutines = []
 obstacles = []
 obstacles_in_last_collisions = []
 year = 1957
+game_over = False
 
 
 async def sleep(tics=1):
@@ -119,6 +120,8 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
 
         for obstacle in obstacles:
             if obstacle.has_collision(row, col, height, width):
+                global game_over
+                game_over = True
                 coroutines.append(show_gameover(canvas))
                 return
 
@@ -209,6 +212,9 @@ async def fill_orbit_with_garbage(canvas):
     _, columns_number = canvas.getmaxyx()
     
     while True:
+        if game_over:
+            return
+            
         delay_tics = get_garbage_delay_tics(year)
         
         if delay_tics is None:
@@ -226,7 +232,7 @@ async def fill_orbit_with_garbage(canvas):
 
 
 def draw(canvas):
-    global coroutines, obstacles, obstacles_in_last_collisions, year
+    global coroutines, obstacles, obstacles_in_last_collisions, year, game_over
     curses.curs_set(False)
     canvas.nodelay(True)
     h, w = canvas.getmaxyx()
