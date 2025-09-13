@@ -108,7 +108,7 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
         dr, dc, space_pressed = read_controls(canvas)
         row_speed, col_speed = update_speed(row_speed, col_speed, dr, dc)
         
-        if space_pressed:
+        if space_pressed and year >= 2020:
             coroutines.append(fire(canvas, row, col + width // 2))
         
         row += row_speed
@@ -250,7 +250,6 @@ def draw(canvas):
     start_r, start_c = h // 2, w // 2
     coroutines.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
     coroutines.append(fill_orbit_with_garbage(canvas))
-    coroutines.append(show_obstacles(canvas, obstacles))
     coroutines.append(show_year_and_phrases(canvas))
     coroutines.append(advance_year())
 
