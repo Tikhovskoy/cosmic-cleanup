@@ -8,6 +8,7 @@ from curses_helpers import draw_frame, get_frame_size, read_controls
 from physics import update_speed
 from obstacles import Obstacle, show_obstacles
 from explosion import explode
+from game_scenario import PHRASES, get_garbage_delay_tics
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
@@ -15,11 +16,33 @@ STAR_SYMBOLS = "+*.:"
 coroutines = []
 obstacles = []
 obstacles_in_last_collisions = []
+year = 1957
 
 
 async def sleep(tics=1):
     for _ in range(tics):
         await asyncio.sleep(0)
+
+
+async def show_year_and_phrases(canvas):
+    while True:
+        phrase = PHRASES.get(year, "")
+        year_text = f"Year: {year}"
+        
+        canvas.addstr(1, 1, year_text)
+        if phrase:
+            canvas.addstr(2, 1, phrase)
+        else:
+            canvas.addstr(2, 1, " " * 50)
+            
+        await asyncio.sleep(0)
+
+
+async def advance_year():
+    global year
+    while True:
+        await sleep(15)
+        year += 1
 
 
 async def show_gameover(canvas):
@@ -186,6 +209,12 @@ async def fill_orbit_with_garbage(canvas):
     _, columns_number = canvas.getmaxyx()
     
     while True:
+        delay_tics = get_garbage_delay_tics(year)
+        
+        if delay_tics is None:
+            await sleep(1)
+            continue
+            
         garbage_file = random.choice(garbage_files)
         with open(garbage_file) as f:
             garbage_frame = f.read()
@@ -193,11 +222,11 @@ async def fill_orbit_with_garbage(canvas):
         column = random.randint(0, columns_number - 1)
         coroutines.append(fly_garbage(canvas, column, garbage_frame, speed=0.5))
         
-        await sleep(10)
+        await sleep(delay_tics)
 
 
 def draw(canvas):
-    global coroutines, obstacles, obstacles_in_last_collisions
+    global coroutines, obstacles, obstacles_in_last_collisions, year
     curses.curs_set(False)
     canvas.nodelay(True)
     h, w = canvas.getmaxyx()
@@ -222,6 +251,8 @@ def draw(canvas):
     coroutines.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
     coroutines.append(fill_orbit_with_garbage(canvas))
     coroutines.append(show_obstacles(canvas, obstacles))
+    coroutines.append(show_year_and_phrases(canvas))
+    coroutines.append(advance_year())
 
     try:
         while True:
@@ -229,7 +260,14 @@ def draw(canvas):
                 try:
                     coroutine.send(None)
                 except StopIteration:
-                    coroutines.remove(coroutine)
+                    if coroutine in coroutines:
+                        coroutines.remove(coroutine)
+                except GeneratorExit:
+                    if coroutine in coroutines:
+                        coroutines.remove(coroutine)
+                except Exception:
+                    if coroutine in coroutines:
+                        coroutines.remove(coroutine)
             canvas.refresh()
             time.sleep(TIC_TIMEOUT)
             if len(coroutines) == 0:
