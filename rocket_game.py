@@ -5,6 +5,7 @@ import time
 import itertools
 
 from curses_helpers import draw_frame, get_frame_size, read_controls
+from physics import update_speed
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
@@ -44,6 +45,7 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
     static, flame1, flame2, flame_offset = split_frames(f1, f2)
     row, col = start_row, start_col
     height, width = get_frame_size(f1)
+    row_speed = col_speed = 0
 
     flame_cycle = itertools.cycle([flame1, flame1, flame2, flame2])
 
@@ -53,8 +55,13 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
         draw_frame(canvas, row + flame_offset, col, flame2, negative=True)
 
         dr, dc, _ = read_controls(canvas)
-        row = max(0, min(row + dr, max_rows - height))
-        col = max(0, min(col + dc, max_cols - width))
+        row_speed, col_speed = update_speed(row_speed, col_speed, dr, dc)
+        
+        row += row_speed
+        col += col_speed
+        
+        row = max(0, min(row, max_rows - height))
+        col = max(0, min(col, max_cols - width))
 
         draw_frame(canvas, row, col, static)
         draw_frame(canvas, row + flame_offset, col, current_flame)
