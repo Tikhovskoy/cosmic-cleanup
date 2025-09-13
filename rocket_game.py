@@ -7,6 +7,7 @@ import itertools
 from curses_helpers import draw_frame, get_frame_size, read_controls
 from physics import update_speed
 from obstacles import Obstacle, show_obstacles
+from explosion import explode
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
@@ -126,6 +127,9 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
         while row < rows_number:
             if obstacle in obstacles_in_last_collisions:
                 obstacles_in_last_collisions.remove(obstacle)
+                center_row = row + rows_size / 2
+                center_column = column + columns_size / 2
+                coroutines.append(explode(canvas, center_row, center_column))
                 return
                 
             draw_frame(canvas, row, column, garbage_frame)
