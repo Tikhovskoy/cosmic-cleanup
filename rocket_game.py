@@ -12,20 +12,21 @@ STAR_SYMBOLS = "+*.:"
 coroutines = []
 
 
+async def sleep(tics=1):
+    for _ in range(tics):
+        await asyncio.sleep(0)
+
+
 async def blink(canvas, row, col, symbol="*", offset_ticks=1):
     while True:
         canvas.addstr(row, col, symbol, curses.A_DIM)
-        for _ in range(offset_ticks):
-            await asyncio.sleep(0)
+        await sleep(offset_ticks)
         canvas.addstr(row, col, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
         canvas.addstr(row, col, symbol, curses.A_BOLD)
-        for _ in range(5):
-            await asyncio.sleep(0)
+        await sleep(5)
         canvas.addstr(row, col, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
 
 
 def split_frames(f1, f2):
@@ -96,8 +97,7 @@ async def fill_orbit_with_garbage(canvas):
         column = random.randint(0, columns_number - 1)
         coroutines.append(fly_garbage(canvas, column, garbage_frame, speed=0.5))
         
-        for _ in range(10):
-            await asyncio.sleep(0)
+        await sleep(10)
 
 
 def draw(canvas):
