@@ -75,6 +75,7 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
+    global obstacles
     row, column = start_row, start_column
 
     canvas.addstr(round(row), round(column), '*')
@@ -95,6 +96,10 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
     curses.beep()
 
     while 0 < row < max_row and 0 < column < max_column:
+        for obstacle in obstacles:
+            if obstacle.has_collision(round(row), round(column)):
+                return
+        
         canvas.addstr(round(row), round(column), symbol)
         await asyncio.sleep(0)
         canvas.addstr(round(row), round(column), ' ')
