@@ -13,6 +13,7 @@ STAR_SYMBOLS = "+*.:"
 
 coroutines = []
 obstacles = []
+obstacles_in_last_collisions = []
 
 
 async def sleep(tics=1):
@@ -75,7 +76,7 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
-    global obstacles
+    global obstacles, obstacles_in_last_collisions
     row, column = start_row, start_column
 
     canvas.addstr(round(row), round(column), '*')
@@ -98,6 +99,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
     while 0 < row < max_row and 0 < column < max_column:
         for obstacle in obstacles:
             if obstacle.has_collision(round(row), round(column)):
+                obstacles_in_last_collisions.append(obstacle)
                 return
         
         canvas.addstr(round(row), round(column), symbol)
@@ -108,7 +110,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
-    global obstacles
+    global obstacles, obstacles_in_last_collisions
     rows_number, columns_number = canvas.getmaxyx()
 
     column = max(column, 0)
@@ -122,6 +124,10 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     
     try:
         while row < rows_number:
+            if obstacle in obstacles_in_last_collisions:
+                obstacles_in_last_collisions.remove(obstacle)
+                return
+                
             draw_frame(canvas, row, column, garbage_frame)
             await asyncio.sleep(0)
             draw_frame(canvas, row, column, garbage_frame, negative=True)
@@ -130,7 +136,8 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
             obstacle.row = row
             obstacle.column = column
     finally:
-        obstacles.remove(obstacle)
+        if obstacle in obstacles:
+            obstacles.remove(obstacle)
 
 
 async def fill_orbit_with_garbage(canvas):
@@ -157,7 +164,7 @@ async def fill_orbit_with_garbage(canvas):
 
 
 def draw(canvas):
-    global coroutines, obstacles
+    global coroutines, obstacles, obstacles_in_last_collisions
     curses.curs_set(False)
     canvas.nodelay(True)
     h, w = canvas.getmaxyx()
