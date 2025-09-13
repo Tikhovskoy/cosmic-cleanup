@@ -59,6 +59,21 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
         await asyncio.sleep(0)
 
 
+async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+    rows_number, columns_number = canvas.getmaxyx()
+
+    column = max(column, 0)
+    column = min(column, columns_number - 1)
+
+    row = 0
+
+    while row < rows_number:
+        draw_frame(canvas, row, column, garbage_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, row, column, garbage_frame, negative=True)
+        row += speed
+
+
 def draw(canvas):
     curses.curs_set(False)
     canvas.nodelay(True)
@@ -82,6 +97,10 @@ def draw(canvas):
 
     start_r, start_c = h // 2, w // 2
     coroutines.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
+    
+    with open("frames/duck.txt") as f:
+        garbage_frame = f.read()
+    coroutines.append(fly_garbage(canvas, column=10, garbage_frame=garbage_frame))
 
     try:
         while True:
