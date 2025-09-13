@@ -6,11 +6,13 @@ import itertools
 
 from curses_helpers import draw_frame, get_frame_size, read_controls
 from physics import update_speed
+from obstacles import Obstacle, show_obstacles
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
 
 coroutines = []
+obstacles = []
 
 
 async def sleep(tics=1):
@@ -101,18 +103,29 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+    global obstacles
     rows_number, columns_number = canvas.getmaxyx()
 
     column = max(column, 0)
     column = min(column, columns_number - 1)
 
     row = 0
-
-    while row < rows_number:
-        draw_frame(canvas, row, column, garbage_frame)
-        await asyncio.sleep(0)
-        draw_frame(canvas, row, column, garbage_frame, negative=True)
-        row += speed
+    rows_size, columns_size = get_frame_size(garbage_frame)
+    
+    obstacle = Obstacle(row, column, rows_size, columns_size)
+    obstacles.append(obstacle)
+    
+    try:
+        while row < rows_number:
+            draw_frame(canvas, row, column, garbage_frame)
+            await asyncio.sleep(0)
+            draw_frame(canvas, row, column, garbage_frame, negative=True)
+            row += speed
+            
+            obstacle.row = row
+            obstacle.column = column
+    finally:
+        obstacles.remove(obstacle)
 
 
 async def fill_orbit_with_garbage(canvas):
@@ -139,7 +152,7 @@ async def fill_orbit_with_garbage(canvas):
 
 
 def draw(canvas):
-    global coroutines
+    global coroutines, obstacles
     curses.curs_set(False)
     canvas.nodelay(True)
     h, w = canvas.getmaxyx()
@@ -163,6 +176,7 @@ def draw(canvas):
     start_r, start_c = h // 2, w // 2
     coroutines.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
     coroutines.append(fill_orbit_with_garbage(canvas))
+    coroutines.append(show_obstacles(canvas, obstacles))
 
     try:
         while True:
