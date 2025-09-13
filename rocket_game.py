@@ -22,6 +22,29 @@ async def sleep(tics=1):
         await asyncio.sleep(0)
 
 
+async def show_gameover(canvas):
+    gameover_text = r"""
+ ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██╗   ██╗███████╗██████╗ 
+██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔═══██╗██║   ██║██╔════╝██╔══██╗
+██║  ███╗███████║██╔████╔██║█████╗      ██║   ██║██║   ██║█████╗  ██████╔╝
+██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗
+╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╔╝ ╚████╔╝ ███████╗██║  ██║
+ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝
+    """
+
+    rows, columns = canvas.getmaxyx()
+    text_lines = gameover_text.strip().split('\n')
+    
+    center_row = rows // 2 - len(text_lines) // 2
+    
+    while True:
+        for i, line in enumerate(text_lines):
+            center_column = columns // 2 - len(line) // 2
+            canvas.addstr(center_row + i, max(0, center_column), line[:columns-1])
+        
+        await asyncio.sleep(0)
+
+
 async def blink(canvas, row, col, symbol="*", offset_ticks=1):
     while True:
         canvas.addstr(row, col, symbol, curses.A_DIM)
@@ -45,6 +68,7 @@ def split_frames(f1, f2):
 
 
 async def animate_spaceship(canvas, start_row, start_col, f1, f2):
+    global obstacles
     max_rows, max_cols = canvas.getmaxyx()
     static, flame1, flame2, flame_offset = split_frames(f1, f2)
     row, col = start_row, start_col
@@ -69,6 +93,11 @@ async def animate_spaceship(canvas, start_row, start_col, f1, f2):
         
         row = max(0, min(row, max_rows - height))
         col = max(0, min(col, max_cols - width))
+
+        for obstacle in obstacles:
+            if obstacle.has_collision(row, col, height, width):
+                coroutines.append(show_gameover(canvas))
+                return
 
         draw_frame(canvas, row, col, static)
         draw_frame(canvas, row + flame_offset, col, current_flame)
