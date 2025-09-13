@@ -9,6 +9,8 @@ from curses_helpers import draw_frame, get_frame_size, read_controls
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = "+*.:"
 
+coroutines = []
+
 
 async def blink(canvas, row, col, symbol="*", offset_ticks=1):
     while True:
@@ -74,7 +76,32 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
         row += speed
 
 
+async def fill_orbit_with_garbage(canvas):
+    garbage_files = [
+        "frames/duck.txt",
+        "frames/hubble.txt", 
+        "frames/lamp.txt",
+        "frames/trash_large.txt",
+        "frames/trash_small.txt",
+        "frames/trash_xl.txt"
+    ]
+    
+    _, columns_number = canvas.getmaxyx()
+    
+    while True:
+        garbage_file = random.choice(garbage_files)
+        with open(garbage_file) as f:
+            garbage_frame = f.read()
+        
+        column = random.randint(0, columns_number - 1)
+        coroutines.append(fly_garbage(canvas, column, garbage_frame, speed=0.5))
+        
+        for _ in range(10):
+            await asyncio.sleep(0)
+
+
 def draw(canvas):
+    global coroutines
     curses.curs_set(False)
     canvas.nodelay(True)
     h, w = canvas.getmaxyx()
@@ -97,10 +124,7 @@ def draw(canvas):
 
     start_r, start_c = h // 2, w // 2
     coroutines.append(animate_spaceship(canvas, start_r, start_c, f1, f2))
-    
-    with open("frames/duck.txt") as f:
-        garbage_frame = f.read()
-    coroutines.append(fly_garbage(canvas, column=10, garbage_frame=garbage_frame))
+    coroutines.append(fill_orbit_with_garbage(canvas))
 
     try:
         while True:
